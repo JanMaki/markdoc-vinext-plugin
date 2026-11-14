@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'bun:test';
 import path from 'node:path';
-import {computeConfigExtras, diagnoseSchemaPath} from '../../src/vite/config-hooks';
+import {normalizePath} from 'vite';
+import {computeConfigExtras, diagnoseSchemaPath, resolveConfigRoot} from '../../src/vite/config-hooks';
 
 /** 実在しない絶対パス。fs には触れない。 */
 const abs = (...parts: string[]): string => path.resolve('/cfg-extras', ...parts);
@@ -163,5 +164,22 @@ describe('diagnoseSchemaPath', () => {
 
   test('linked schema dir whose real path contains the root → warn (contains the project root)', () => {
     expect(diagnose(path.join(root, 'markdoc'), abs('ws'))?.message).toContain('contains the project root');
+  });
+});
+
+// 実体が同じ場合 (シンボリックリンク経由) は test/integration/dev-ssr.test.ts で確認する。
+describe('resolveConfigRoot', () => {
+  const resolved = normalizePath(root);
+
+  test('no root from the config hook → the resolved root', () => {
+    expect(resolveConfigRoot(undefined, resolved)).toBe(resolved);
+  });
+
+  test('the same path in another separator style → the resolved root', () => {
+    expect(resolveConfigRoot(root, resolved)).toBe(resolved);
+  });
+
+  test('a root pointing elsewhere (changed by a later plugin) → the resolved root', () => {
+    expect(resolveConfigRoot(abs('other'), resolved)).toBe(resolved);
   });
 });

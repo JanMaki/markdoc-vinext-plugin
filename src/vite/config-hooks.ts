@@ -2,7 +2,7 @@
 
 import os from 'node:os';
 import path from 'node:path';
-import {type Plugin, searchForWorkspaceRoot, type UserConfig} from 'vite';
+import {normalizePath, type Plugin, searchForWorkspaceRoot, type UserConfig} from 'vite';
 import {clearMarkdocCache} from '../cache';
 import {realpathOrSelf} from '../fs-utils';
 import {getSchemaDir, resolveProjectRoot} from '../options';
@@ -122,20 +122,36 @@ export function diagnoseSchemaPath(placement: SchemaDirPlacement, home: string):
 }
 
 export function createConfigHook(state: PluginState): NonNullable<Plugin['config']> {
-  return (userConfig) =>
-    computeConfigExtras(userConfig, state.options, {
+  return (userConfig) => {
+    const env: ConfigExtrasEnv = {
       cwd: process.cwd(),
       home: os.homedir(),
       workspaceRoot: (root) => searchForWorkspaceRoot(root),
       realpath: realpathOrSelf,
-    });
+    };
+    state.configRoot = path.resolve(userConfig.root ?? env.cwd);
+    return computeConfigExtras(userConfig, state.options, env);
+  };
+}
+
+/**
+ * schemaPath などの相対パスの基準にするルート。
+ * Vite 8.2 以降は `resolve.preserveSymlinks` が false のとき `config.root` を実パスにするため、
+ * 同じ実体を指す場合は config フックで受け取ったルートを使う。
+ */
+export function resolveConfigRoot(configRoot: string | undefined, resolvedRoot: string): string {
+  if (configRoot === undefined) return resolvedRoot;
+  const root = normalizePath(configRoot);
+  if (root === resolvedRoot) return resolvedRoot;
+  return realpathOrSelf(configRoot) === realpathOrSelf(resolvedRoot) ? root : resolvedRoot;
 }
 
 export function createConfigResolvedHook(state: PluginState): NonNullable<Plugin['configResolved']> {
   const {options} = state;
   return (config) => {
     // config() で `server.fs.allow` に加えたパスと一致させるため、ルートは実パスにしない。
-    state.root = resolveProjectRoot(options, config.root);
+    const root = resolveConfigRoot(state.configRoot, config.root);
+    state.root = resolveProjectRoot(options, root);
     // インライン設定の変更による再起動ではプラグインのインスタンスが再利用される。
     clearMarkdocCache(state.cache);
     state.alias = config.resolve.alias;
@@ -147,7 +163,7 @@ export function createConfigResolvedHook(state: PluginState): NonNullable<Plugin
       );
     }
     state.realSchemaDirs.clear();
-    const placement = schemaDirPlacement(config.root, options, realpathOrSelf);
+    const placement = schemaDirPlacement(root, options, realpathOrSelf);
     state.narrowSchemaWatch = shouldNarrowSchemaWatch(placement, os.homedir());
     const diagnostic = diagnoseSchemaPath(placement, os.homedir());
     if (diagnostic) config.logger[diagnostic.level](diagnostic.message);

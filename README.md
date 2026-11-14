@@ -2,7 +2,7 @@
 
 [Vinext](https://github.com/cloudflare/vinext)（Cloudflare による Vite ベースの Next.js 実装）で、Markdoc の `.md` / `.mdoc` を React コンポーネントとして扱うための Vite プラグインです。
 
-公式の [`@markdoc/next.js`](https://github.com/markdoc/next.js) は webpack / Turbopack のローダー（`src/loader.js`）なので、Vite 上で動く Vinext では使えません。このプラグインは、公式ローダーが生成するモジュールと実行時の振る舞い（`src/runtime.js` を含む）を Vite の `transform` フックで再現します。対象は `@markdoc/next.js` 0.5.x〜0.6.x 相当の `main` ブランチです。
+公式の [`@markdoc/next.js`](https://github.com/markdoc/markdoc/tree/main/packages/next.js) は webpack / Turbopack のローダー（`src/loader.js`）なので、Vite 上で動く Vinext では使えません。このプラグインは、公式ローダーが生成するモジュールと実行時の振る舞い（`src/runtime.js` を含む）を Vite の `transform` フックで再現します。対象は `@markdoc/next.js` 0.6.2 です（`src/loader.js` と `src/runtime.js` は 0.6.1 と同一）。
 
 ## 目次
 
@@ -227,7 +227,7 @@ import Note from '../components/note.md';
 2. 両方のディレクトリに含まれる（入れ子の）場合は、深いほうを優先します。
 3. `file.path` は、そのディレクトリからの相対パスです（例: `/docs/page.md`）。
 4. どちらにも含まれないファイルは、コンポーネントとしての import として扱います。
-5. プロジェクトルートがシンボリックリンクやジャンクション経由の場合は、そのパスと実パスの両方で判定します（`resolve.preserveSymlinks` の設定によらずページになります）。`schemaPath` などの相対パスは、実パスではなく指定どおりのルートから解決します。
+5. プロジェクトルートがシンボリックリンクやジャンクション経由の場合は、そのパスと実パスの両方で判定します（`resolve.preserveSymlinks` の設定によらずページになります）。`schemaPath` などの相対パスは、実パスではなく指定どおりのルートから解決します。Vite 8.2 以降は `resolve.preserveSymlinks` が `false` のとき `config.root` を実パスにしますが、`schemaPath` の基準は指定どおりのルートのままです。
 
 ## スキーマフォルダ
 
@@ -425,13 +425,15 @@ mdx({include: /\.mdx$/});
 
 ### プラグイン単体
 
-`bun test` で次の 3 種類のテストを実行します。Windows 11 / Bun 1.4.3 で、`bun run versions` が表示する次のバージョンを使って全 430 件の成功を確認しています。
+`bun test` で次の 3 種類のテストを実行します。Windows 11 / Bun 1.4.3 で、`bun run versions` が表示する次のバージョンを使って全 433 件の成功を確認しています。
 
-`vite@6.4.5`、`@markdoc/markdoc@0.5.11`、`js-yaml@4.3.2`、`react@19.3.1`、`react-dom@19.3.1`、`typescript@5.9.3`
+`vite@8.3.8`、`@markdoc/markdoc@0.5.11`、`js-yaml@4.3.2`、`react@19.3.1`、`react-dom@19.3.1`、`typescript@5.9.3`
+
+`vite` を `6.4.5` に入れ替えた場合も、全 433 件の成功を確認しています。
 
 | 種類 | 場所 | 件数 | 内容 |
 | --- | --- | --- | --- |
-| unit | `test/unit/` | 325 | Vite を起動しない単体テスト |
+| unit | `test/unit/` | 328 | Vite を起動しない単体テスト |
 | golden | `test/golden/` | 44 | `examples/basic/` のサンプルと境界ケースの生成コードのスナップショット |
 | integration | `test/integration/` | 61 | Vite の build / dev サーバ / `resolveConfig` を使うテスト |
 

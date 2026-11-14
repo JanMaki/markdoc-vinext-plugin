@@ -9,6 +9,8 @@ export type PluginState = {
   options: MarkdocVitePluginOptions;
   /** プロジェクトのルート。configResolved で確定する。 */
   root: string;
+  /** config フックで受け取った、実パスにする前のルート。 */
+  configRoot: string | undefined;
   alias: Alias[];
   /** ユーザー設定の `define`。runnerImport はプロジェクトの設定ファイルを読まないため渡す。 */
   define: NonNullable<UserConfig['define']>;
@@ -29,6 +31,7 @@ export function createPluginState(options: MarkdocVitePluginOptions): PluginStat
   return {
     options,
     root: resolveProjectRoot(options, process.cwd()),
+    configRoot: undefined,
     alias: [],
     define: {},
     isBuild: false,
