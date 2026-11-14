@@ -46,6 +46,7 @@ bun run verify            # typecheck、test:unit、test:integration を続け�
 bun run build             # tsdown で dist/ に JavaScript と型宣言を出力
 bun run test:unit         # bun test test/unit test/golden（Vite を起動しない）
 bun run test:integration  # bun test test/integration（Vite の build / dev サーバを使う。timeout 120 秒）
+bun run test:package      # build の後に bun test test/package（dist/ の export と runtime.js を検査）
 bun run versions          # 検証に使った依存パッケージと Bun のバージョンを表示
 ```
 
@@ -68,10 +69,11 @@ Biome は TypeScript / JavaScript / JSON を対象にします。Markdown（`.md
 ### インストール
 
 ```sh
-npm install -D markdoc-vinext-plugin @markdoc/markdoc js-yaml
+npm install @markdoc/markdoc js-yaml
+npm install -D markdoc-vinext-plugin
 ```
 
-`react` と `vite` は Vinext プロジェクトに含まれています。
+`@markdoc/markdoc` と `js-yaml` は生成モジュールが実行時に import するため、`dependencies` に入れます。`react` と `vite` は Vinext プロジェクトに含まれています。
 
 ### 1. `vite.config.ts` にプラグインを追加する
 
@@ -523,6 +525,7 @@ test/
   unit/                  # 単体テスト
   golden/                # 生成コードのスナップショット
   integration/           # Vite を使うテスト
+  package/               # ビルド後の dist/ の検査
   helpers/               # テストの共通処理
   types/usage.ts         # 型宣言の確認（型チェックのみ）
   setup.ts               # bun test の preload

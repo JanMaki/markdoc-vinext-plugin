@@ -48,7 +48,8 @@
     "versions": "bun run scripts/print-versions.ts",
     "test:unit": "bun test test/unit test/golden",
     "test:integration": "bun test test/integration --timeout 120000",
-    "prepublishOnly": "bun run verify && bun run build"
+    "prepublishOnly": "bun run verify && bun run test:package",
+    "test:package": "bun run build && bun test test/package"
   },
   "peerDependencies": {
     "@markdoc/markdoc": ">=0.4",
