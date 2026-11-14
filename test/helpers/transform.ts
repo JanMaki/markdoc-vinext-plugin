@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as vite from 'vite';
-import {transformMarkdoc} from '../../src/transform';
 import type {MarkdocVitePluginOptions} from '../../src';
+import {transformMarkdoc} from '../../src/transform';
 import {constValue} from './ast';
 import {containsMarker, errorMessage} from './code';
 import {exampleRoot} from './paths';
@@ -54,7 +54,7 @@ type ViteParsers = {
   parseSync?: (
     filename: string,
     code: string,
-    options: {lang: 'js'; sourceType: 'module'},
+    options: {lang: 'js'; sourceType: 'module'; showSemanticErrors: boolean},
   ) => {errors: readonly unknown[]};
   /** 構文エラーは例外を投げる。 */
   parseAst: (code: string) => unknown;
@@ -64,7 +64,10 @@ type ViteParsers = {
 export async function parsesAsPlainJs(code: string): Promise<boolean> {
   const parsers = vite as unknown as ViteParsers;
   if (parsers.parseSync) {
-    return parsers.parseSync('generated.js', code, {lang: 'js', sourceType: 'module'}).errors.length === 0;
+    return (
+      parsers.parseSync('generated.js', code, {lang: 'js', sourceType: 'module', showSemanticErrors: true}).errors
+        .length === 0
+    );
   }
   try {
     parsers.parseAst(code);
