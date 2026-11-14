@@ -37,7 +37,8 @@ describe('shouldTransformId', () => {
 
   test('extension regex with /g is stable across calls', () => {
     // /g の lastIndex が呼び出し間で残ると交互に失敗する
-    const results = [1, 2, 3, 4].map(() => shouldTransformId('/x/a.md', {extension: /\.md$/g}));
+    const options = {extension: /\.md$/g};
+    const results = [1, 2, 3, 4].map(() => shouldTransformId('/x/a.md', options));
     expect(results).toEqual([true, true, true, true]);
   });
 });
