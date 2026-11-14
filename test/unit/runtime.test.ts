@@ -2,6 +2,9 @@ import {describe, expect, test} from 'bun:test';
 import fs from 'node:fs';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
+import Markdoc from '@markdoc/markdoc';
+import {createElement, Fragment, type ReactNode} from 'react';
+import {renderToString} from 'react-dom/server';
 import sampleNodes from '../../examples/basic/markdoc/nodes';
 import sampleTags from '../../examples/basic/markdoc/tags';
 import {defaultObject, displayName, getSchema, sanitizeFrontmatter} from '../../src/runtime/runtime.js';
@@ -10,6 +13,9 @@ import {repoRoot, tmpDirFor} from '../helpers/paths';
 
 const dir = tmpDirFor(import.meta);
 const runtimeFile = path.join(repoRoot, 'src/runtime/runtime.js');
+
+const TagLink = ({children}: {children?: ReactNode}) => createElement('span', {className: 'tag'}, children);
+const NodeLink = ({children}: {children?: ReactNode}) => createElement('a', {className: 'node'}, children);
 
 describe('runtime source', () => {
   test('INLINE_RUNTIME_SOURCE is runtime.js and loads as a standalone ES module', async () => {
@@ -44,6 +50,36 @@ describe('getSchema / defaultObject / displayName', () => {
     const schema = getSchema({tags: {plain: {attributes: {}}}});
     expect(schema.tags?.plain).toEqual({attributes: {}, render: undefined});
     expect(schema.components).toEqual({});
+  });
+
+  test('a tag and a node with the same name each render their own component', () => {
+    const schema = getSchema({
+      tags: {link: {render: TagLink, children: ['inline']}},
+      nodes: {link: {render: NodeLink, attributes: {href: {type: String}}}},
+    });
+    expect(schema.tags.link?.render).toBe('Link');
+    expect(schema.nodes.link?.render).toBe('Link2');
+    expect(schema.components).toEqual({Link: TagLink, Link2: NodeLink});
+
+    const {components, ...config} = schema;
+    const tree = Markdoc.transform(Markdoc.parse('{% link %}t{% /link %} [n](/x)'), config);
+    const html = renderToString(
+      Markdoc.renderers.react(tree, {createElement, Fragment}, {components: components as never}) as ReactNode,
+    );
+    expect(html).toContain('<span class="tag">t</span>');
+    expect(html).toContain('<a class="node">n</a>');
+  });
+
+  test('names that collide after displayName get distinct components; non-colliding names are unchanged', () => {
+    const [A, B, C, D, E] = [1, 2, 3, 4, 5].map((i) => () => i);
+    const schema = getSchema({
+      tags: {'my-tag': {render: A}, my_tag: {render: B}, callout: {render: C}, h1: {render: D}, h2: {render: D}},
+      nodes: {paragraph: {render: E}},
+    });
+    expect([schema.tags['my-tag'], schema.tags.my_tag].map((s) => s?.render)).toEqual(['MyTag', 'MyTag2']);
+    expect([schema.tags.callout, schema.tags.h1, schema.tags.h2].map((s) => s?.render)).toEqual(['Callout', 'H', 'H']);
+    expect(schema.nodes.paragraph?.render).toBe('Paragraph');
+    expect(schema.components).toEqual({MyTag: A, MyTag2: B, Callout: C, H: D, Paragraph: E});
   });
 
   test('defaultObject unwraps default, passes plain objects through and maps null / undefined to {}', () => {
