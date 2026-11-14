@@ -402,6 +402,7 @@ mdx({extension: /\.mdx$/});
 | スキーマの解決 | `preferRelative: true`（相対を優先し、bare 指定子も試す） | 相対指定のみ。スキーマフォルダ外の結果は使わない |
 | partial | パスの制限なし。循環すると無限再帰 | partials フォルダ内に限定。拡張子の制限あり。循環と深さ超過はエラー |
 | frontmatter がオブジェクト以外 | `frontmatter.nextjs` の参照で例外 | オブジェクト以外（スカラー、`null`、`~`）は `{}`。配列はそのまま。YAML の構文エラーは変換時に報告 |
+| コンポーネント名の重複 | `displayName` が重なるタグ / ノード（`tags.link` と `nodes.link` 等）は同じ名前になり、後の定義のコンポーネントで両方を描画する | 数字を付けて区別する（[生成コード](#生成コード)） |
 | frontmatter の `$$mdtype` | そのまま渡す（Markdoc のタグとして描画される） | 取り除く |
 | `nextjsExports` | 検証なし | 識別子として検証 |
 | スキーマの監視 | `addContextDependency(schemaDir)` | 使用したファイルを `addWatchFile`。スキーマフォルダでの追加・削除時に無効化 |
@@ -418,17 +419,19 @@ mdx({extension: /\.mdx$/});
 
 `getSchema` は、タグ / ノードの `render` 関数を PascalCase のコンポーネント名に置き換え、コンポーネント本体は描画時に渡します。公式と同じく、JSON への変換で関数が失われないようにするためです。
 
+コンポーネント名は `displayName`（`my-tag` → `MyTag`）の結果です。`tags`、`nodes` の順に登録順で割り当て、別のコンポーネントがすでに使っている名前には 2 以上の最小の数字を付けます（例: `tags.link` → `Link`、`nodes.link` → `Link2`、`tags['my-tag']` → `MyTag`、`tags.my_tag` → `MyTag2`）。同じコンポーネントの場合は名前を共有します（`h1` と `h2` が同じなら両方 `H`）。重ならない名前は変わりません。`props.components` で上書きするときはこの名前を使います。
+
 ## 検証
 
 ### プラグイン単体
 
-`bun test` で次の 3 種類のテストを実行します。Windows 11 / Bun 1.4.3 で、`bun run versions` が表示する次のバージョンを使って全 424 件の成功を確認しています。
+`bun test` で次の 3 種類のテストを実行します。Windows 11 / Bun 1.4.3 で、`bun run versions` が表示する次のバージョンを使って全 426 件の成功を確認しています。
 
 `vite@6.4.5`、`@markdoc/markdoc@0.5.11`、`js-yaml@4.3.2`、`react@19.3.1`、`react-dom@19.3.1`、`typescript@5.9.3`
 
 | 種類 | 場所 | 件数 | 内容 |
 | --- | --- | --- | --- |
-| unit | `test/unit/` | 319 | Vite を起動しない単体テスト |
+| unit | `test/unit/` | 321 | Vite を起動しない単体テスト |
 | golden | `test/golden/` | 44 | `examples/basic/` のサンプルと境界ケースの生成コードのスナップショット |
 | integration | `test/integration/` | 61 | Vite の build / dev サーバ / `resolveConfig` を使うテスト |
 
@@ -471,7 +474,6 @@ Vinext 1.4.4 では `vinext dev` ではなく `vite dev` を使ってくださ�
 - **Next.js の組み込みタグ**: 公式の `@markdoc/next.js/tags`（`head` / `link` / `script` / `image` / `comment`）は同梱していません。必要なら公式パッケージから import し、`markdoc/tags` で再 export してください。
 - **スキーマのエイリアス**: スキーマのエントリは相対指定だけで解決するため、エイリアスでスキーマフォルダの外を指すことはできません。
 - **スキーマの依存ファイルの import 失敗**: `compile: 'build'` で、スキーマモジュールが import するファイルの読み込みに失敗すると、依存ファイルが分からないため、代わりにスキーマフォルダを監視します（root やホームディレクトリを含むスキーマフォルダでは監視しません）。スキーマフォルダ内のファイルを直せば再変換されます。スキーマフォルダの外のファイルを直した場合は再変換されないため、スキーマフォルダ内のファイルを更新（保存し直す等）するか、ページを再読み込みしてください（`build --watch` では再起動してください）。
-- **`displayName` の重複**: `h1` と `h2` がどちらも `H` になるように、名前が重なるタグやノードがあります。公式と同じ挙動で、エラーにはしません。
 - **未知のクエリ**: 既知の特殊なクエリ（`raw`、`url`、`inline`、`worker` など）だけを変換対象から外します。独自のクエリで元の内容を要求するプラグインがあると、そのリクエストも変換されます。
 - **partial の展開量**: 1 つの partial が次の partial を複数回参照する構造を深く重ねると、Markdoc の変換で展開される量が指数的に増えます。段数の上限（32）はこの量を制限しません。
 - **frontmatter のオブジェクトの埋め込み**: 本文にスカラーではなくオブジェクトの値を埋め込む（例: `{% $markdoc.frontmatter.x %}` で `x` がオブジェクト）と、描画時に React のエラー（Objects are not valid as a React child）になります。公式ローダーと同じ挙動です。

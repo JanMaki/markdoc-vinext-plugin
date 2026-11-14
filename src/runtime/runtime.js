@@ -21,42 +21,83 @@ export function displayName(name) {
 }
 
 /**
- * tag / node の定義の `render` を PascalCase の名前に置き換え、コンポーネントを別に集める。
- * @param {Record<string, Registration> | undefined} config
- * @returns {{output: Record<string, any>, components: Record<string, unknown>}}
+ * tag / node の `render` を置き換えるコンポーネント名を、`tags`、`nodes` の順に登録順で割り当てる。
+ * 名前は `displayName` の結果。別のコンポーネントに割り当て済みの名前には、どの定義の `displayName` の結果とも重ならない
+ * 最小の数字 (2 以上) を付ける (`tags.link` → `Link`、`nodes.link` → `Link2`)。同じコンポーネントは名前を共有する。
+ * @param {Array<Record<string, Registration> | undefined>} records
+ * @returns {Array<Map<string, string>>} 各 record の名前 → コンポーネント名。`render` のない定義は含まない。
  */
-function transformRecord(config) {
+function assignComponentNames(records) {
+  /** @type {Array<[Map<string, string>, string, unknown]>} */
+  const entries = [];
+  /** @type {Set<string>} */
+  const baseNames = new Set();
+  const results = records.map((config) => {
+    /** @type {Map<string, string>} */
+    const names = new Map();
+    if (config) {
+      for (const [name, registration] of Object.entries(config)) {
+        if (!registration.render) continue;
+        entries.push([names, name, registration.render]);
+        baseNames.add(displayName(name));
+      }
+    }
+    return names;
+  });
+  /** @type {Map<string, unknown>} */
+  const assigned = new Map();
+  for (const [names, name, component] of entries) {
+    const base = displayName(name);
+    let componentName = base;
+    let suffix = 1;
+    while (
+      (assigned.has(componentName) && assigned.get(componentName) !== component) ||
+      (componentName !== base && baseNames.has(componentName))
+    ) {
+      suffix++;
+      componentName = `${base}${suffix}`;
+    }
+    assigned.set(componentName, component);
+    names.set(name, componentName);
+  }
+  return results;
+}
+
+/**
+ * tag / node の定義の `render` をコンポーネント名に置き換え、コンポーネントを別に集める。
+ * @param {Record<string, Registration> | undefined} config
+ * @param {Map<string, string>} componentNames
+ * @param {Record<string, unknown>} components
+ * @returns {Record<string, any>}
+ */
+function transformRecord(config, componentNames, components) {
   /** @type {Record<string, any>} */
   const output = {};
-  /** @type {Record<string, unknown>} */
-  const components = {};
   if (config) {
     for (const [name, registration] of Object.entries(config)) {
-      const componentName = registration.render ? displayName(name) : undefined;
+      const componentName = componentNames.get(name);
       output[name] = {...registration, render: componentName};
       if (componentName) {
         components[componentName] = registration.render;
       }
     }
   }
-  return {output, components};
+  return output;
 }
 
 /**
- * tag / node の `render` 関数を PascalCase のコンポーネント名に置き換え、renderable tree を
- * JSON シリアライズできるようにする。コンポーネントは `components` として返し、Markdoc.renderers.react に渡す。
+ * tag / node の `render` 関数をコンポーネント名に置き換え、renderable tree を JSON シリアライズできるようにする。
+ * コンポーネントは `components` として返し、Markdoc.renderers.react に渡す。名前の割り当ては assignComponentNames を参照。
  * @param {MarkdocSchemaInput} schema
  * @returns {MarkdocRuntimeSchema}
  */
 export function getSchema(schema) {
-  const {output: tags, components: tagComponents} = transformRecord(schema.tags);
-  const {output: nodes, components: nodeComponents} = transformRecord(schema.nodes);
-  return {
-    ...schema,
-    tags,
-    nodes,
-    components: {...tagComponents, ...nodeComponents},
-  };
+  const [tagNames, nodeNames] = assignComponentNames([schema.tags, schema.nodes]);
+  /** @type {Record<string, unknown>} */
+  const components = {};
+  const tags = transformRecord(schema.tags, tagNames, components);
+  const nodes = transformRecord(schema.nodes, nodeNames, components);
+  return {...schema, tags, nodes, components};
 }
 
 /** frontmatter の値の数の上限。YAML のエイリアスは参照を共有するため、展開後の数で数える。 */
