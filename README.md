@@ -43,6 +43,7 @@ bun install
 bun run typecheck         # bun check（tsconfig.json に従って型チェック）
 bun run biome             # Biome でリントとフォーマット（自動修正あり）
 bun run verify            # typecheck、test:unit、test:integration を続けて実行
+bun run build             # tsdown で dist/ に JavaScript と型宣言を出力
 bun run test:unit         # bun test test/unit test/golden（Vite を起動しない）
 bun run test:integration  # bun test test/integration（Vite の build / dev サーバを使う。timeout 120 秒）
 bun run versions          # 検証に使った依存パッケージと Bun のバージョンを表示
@@ -63,6 +64,14 @@ bun run versions          # 検証に使った依存パッケージと Bun の�
 Biome は TypeScript / JavaScript / JSON を対象にします。Markdown（`.md` / `.mdoc`）は対象外です。Biome の Markdown 整形は Markdoc の frontmatter とタグを壊すためです。
 
 ## 使い方
+
+### インストール
+
+```sh
+npm install -D markdoc-vinext-plugin @markdoc/markdoc js-yaml
+```
+
+`react` と `vite` は Vinext プロジェクトに含まれています。
 
 ### 1. `vite.config.ts` にプラグインを追加する
 
@@ -524,5 +533,6 @@ bunfig.toml
 bun.lock
 package.json
 tsconfig.json
+tsdown.config.ts         # ビルドの設定（出力先は dist/）
 THIRD-PARTY-NOTICES.md   # 同梱した第三者コードのライセンス表示
 ```

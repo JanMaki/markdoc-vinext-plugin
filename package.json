@@ -1,24 +1,54 @@
 {
   "name": "markdoc-vinext-plugin",
   "version": "0.1.0",
-  "private": true,
   "description": "Vite plugin that makes Markdoc pages work in Vinext, mirroring @markdoc/next.js",
+  "keywords": [
+    "markdoc",
+    "vinext",
+    "vite",
+    "vite-plugin",
+    "nextjs",
+    "react"
+  ],
+  "license": "MIT",
+  "author": "JanMaki",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JanMaki/markdoc-vinext-plugin.git"
+  },
+  "homepage": "https://github.com/JanMaki/markdoc-vinext-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/JanMaki/markdoc-vinext-plugin/issues"
+  },
   "type": "module",
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./runtime": "./src/runtime/index.ts",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.ts",
+      "default": "./dist/runtime/index.js"
+    },
     "./env": {
-      "types": "./src/env.d.ts"
+      "types": "./dist/env.d.ts"
     }
   },
+  "files": [
+    "dist",
+    "THIRD-PARTY-NOTICES.md"
+  ],
   "scripts": {
+    "build": "tsdown",
     "typecheck": "bun check",
     "biome": "bunx biome check --write",
     "verify": "bun run typecheck && bun run test:unit && bun run test:integration",
     "versions": "bun run scripts/print-versions.ts",
     "test:unit": "bun test test/unit test/golden",
-    "test:integration": "bun test test/integration --timeout 120000"
+    "test:integration": "bun test test/integration --timeout 120000",
+    "prepublishOnly": "bun run verify && bun run build"
   },
   "peerDependencies": {
     "@markdoc/markdoc": ">=0.4",
@@ -38,6 +68,7 @@
     "js-yaml": "^4.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "tsdown": "^0.23.7",
     "typescript": "^5.8.3",
     "vite": "^8.3.7"
   }

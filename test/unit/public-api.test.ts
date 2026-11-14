@@ -5,10 +5,15 @@ import * as publicIndex from '../../src/index';
 import * as publicRuntime from '../../src/runtime/index';
 import {repoRoot} from '../helpers/paths';
 
-type ExportTarget = string | {types?: string};
+type ExportTarget = {types: string; default?: string};
 const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')) as {
   exports: Record<string, ExportTarget>;
 };
+
+/** `./dist/foo.js` / `./dist/foo.d.ts` をビルド前のソース `./src/foo.ts` / `./src/foo.d.ts` に対応させる。 */
+function sourceOf(target: string): string {
+  return target.replace(/^\.\/dist\//, './src/').replace(/(?<!\.d)\.js$/, '.ts');
+}
 
 describe('public API: package entry', () => {
   test('exports are exactly markdoc and default, and default is markdoc', () => {
@@ -37,10 +42,15 @@ describe('public API: package.json exports', () => {
     expect(Object.keys(pkg.exports)).toEqual(['.', './runtime', './env']);
   });
 
-  test('every target file exists', () => {
-    const targets = Object.values(pkg.exports).map((t) => (typeof t === 'string' ? t : t.types));
-    expect(targets).toEqual(['./src/index.ts', './src/runtime/index.ts', './src/env.d.ts']);
-    for (const target of targets) expect(fs.existsSync(path.join(repoRoot, target as string))).toBe(true);
+  test('targets point to dist and have a source file', () => {
+    expect(Object.values(pkg.exports)).toEqual([
+      {types: './dist/index.d.ts', default: './dist/index.js'},
+      {types: './dist/runtime/index.d.ts', default: './dist/runtime/index.js'},
+      {types: './dist/env.d.ts'},
+    ]);
+    const sources = Object.values(pkg.exports).map((t) => sourceOf(t.default ?? t.types));
+    expect(sources).toEqual(['./src/index.ts', './src/runtime/index.ts', './src/env.d.ts']);
+    for (const source of sources) expect(fs.existsSync(path.join(repoRoot, source))).toBe(true);
   });
 
   test('./env is resolved through a types condition', () => {
