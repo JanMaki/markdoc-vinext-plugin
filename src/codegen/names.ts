@@ -1,8 +1,8 @@
 /** 生成モジュールのトップレベルの名前。 */
 
 /**
- * 生成モジュールがトップレベルで宣言・export する名前。
- * `nextjsExports` の値と重なると重複宣言の構文エラーになる。
+ * 生成モジュールがトップレベルで宣言・export する名前と、生成コードが参照するグローバル。
+ * `nextjsExports` の値と重なると、宣言名は重複宣言の構文エラー、グローバルは TDZ の ReferenceError や参照の置き換わりになる。
  */
 export const GENERATED_MODULE_NAMES = new Set([
   'React',
@@ -34,6 +34,10 @@ export const GENERATED_MODULE_NAMES = new Set([
   'default',
   'getStaticProps',
   'getServerSideProps',
+  // 生成コードが参照するグローバル (JSON: 全モード、Date: build の frontmatter、Object: runtime の getMarkdocData)。
+  'JSON',
+  'Date',
+  'Object',
 ]);
 
 /** スキーマフォルダのエントリ名。生成モジュールではこの名前で import する。 */
