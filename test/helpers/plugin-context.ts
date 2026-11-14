@@ -50,7 +50,7 @@ export function fakePluginContext(
 /** `configResolved` を偽の ResolvedConfig で呼ぶ。警告は `warns` に記録する。 */
 export function callConfigResolved(
   plugin: Plugin,
-  config: {root: string; command: 'serve' | 'build'; warns?: string[]},
+  config: {root: string; command: 'serve' | 'build'; define?: Record<string, string>; warns?: string[]},
 ): void {
   const hook = plugin.configResolved as (this: unknown, c: unknown) => void;
   hook.call(
@@ -59,6 +59,7 @@ export function callConfigResolved(
       root: config.root,
       command: config.command,
       resolve: {alias: []},
+      define: config.define,
       logger: {warn: (msg: string) => config.warns?.push(msg), info: () => undefined},
     },
   );

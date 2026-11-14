@@ -25,6 +25,7 @@ function createImportModule(state: PluginState): NonNullable<TransformMarkdocCon
       root: state.root,
       logLevel: 'error',
       resolve: {alias: state.alias},
+      define: state.define,
     });
     return {module, dependencies: dependencies.filter((dep): dep is string => typeof dep === 'string')};
   };

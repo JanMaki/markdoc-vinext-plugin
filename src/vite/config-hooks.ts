@@ -139,6 +139,7 @@ export function createConfigResolvedHook(state: PluginState): NonNullable<Plugin
     // インライン設定の変更による再起動ではプラグインのインスタンスが再利用される。
     clearMarkdocCache(state.cache);
     state.alias = config.resolve.alias;
+    state.define = config.define ?? {};
     state.isBuild = config.command === 'build';
     if (options.extension && options.extensions) {
       config.logger.warn(
