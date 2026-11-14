@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import {transformWithEsbuild} from 'vite';
+import * as vite from 'vite';
 import {transformMarkdoc} from '../../src/transform';
-import type {MarkdocVitePluginOptions} from '../../src/types';
+import type {MarkdocVitePluginOptions} from '../../src';
 import {constValue} from './ast';
 import {containsMarker, errorMessage} from './code';
 import {exampleRoot} from './paths';
@@ -46,10 +46,28 @@ export async function expectThrowMessage(fn: () => unknown): Promise<string> {
   return '';
 }
 
+/**
+ * Vite のパーサ。`parseSync` は Vite 8 以降、`parseAst` は Vite 8 で非推奨。
+ * Vite 6 / 8 のどちらの型定義でも型チェックが通るよう、`vite` の型ではなくこの型で参照する。
+ */
+type ViteParsers = {
+  parseSync?: (
+    filename: string,
+    code: string,
+    options: {lang: 'js'; sourceType: 'module'},
+  ) => {errors: readonly unknown[]};
+  /** 構文エラーは例外を投げる。 */
+  parseAst: (code: string) => unknown;
+};
+
 /** TS / JSX を含まないプレーンな ESM JavaScript として解釈できるか。 */
 export async function parsesAsPlainJs(code: string): Promise<boolean> {
+  const parsers = vite as unknown as ViteParsers;
+  if (parsers.parseSync) {
+    return parsers.parseSync('generated.js', code, {lang: 'js', sourceType: 'module'}).errors.length === 0;
+  }
   try {
-    await transformWithEsbuild(code, 'generated.js', {loader: 'js', format: 'esm'});
+    parsers.parseAst(code);
     return true;
   } catch {
     return false;

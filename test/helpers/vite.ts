@@ -1,8 +1,8 @@
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {build} from 'vite';
-import type {MarkdocVitePluginOptions} from '../../src/types';
-import {markdoc} from '../../src/vite/plugin';
+import type {MarkdocVitePluginOptions} from '../../src';
+import {markdoc} from '../../src';
 import {errorMessage, excerpt, sleep} from './code';
 import {exampleRoot} from './paths';
 
@@ -44,7 +44,7 @@ export async function bundleEntry(
 }
 
 /**
- * サイズ計測用のビルド: rollup input (ライブラリモードではない)、external は React のみ、esbuild で minify。
+ * サイズ計測用のビルド: rollup input (ライブラリモードではない)、external は React のみ、Vite の既定 (Vite 6 は esbuild、Vite 8 は Oxc) で minify。
  */
 export async function measureBuild(
   entry: string,
@@ -63,7 +63,7 @@ export async function measureBuild(
       outDir,
       emptyOutDir: false,
       write: true,
-      minify: extra.minify === false ? false : 'esbuild',
+      minify: extra.minify !== false,
       sourcemap: extra.sourcemap ?? false,
       ssr: extra.ssr ?? false,
       rollupOptions: {

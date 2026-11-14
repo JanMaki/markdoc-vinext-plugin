@@ -309,13 +309,13 @@ Vite の Environment API（`this.environment.config.consumer`）で client と s
 - スキーマ（`config` / `tags` / `nodes` / `functions`）は変換時にも実行します。Vite 6.1 以降の `runnerImport`（実験的 API）で、`schemaPath` 配下に解決されたファイルだけを読み込みます。Vite 6.0 ではネイティブの `import()` を使うため、TSX と拡張子なしの import を含むスキーマは読めず、スキーマの編集は dev サーバを再起動するまで反映されません。TSX のスキーマで `compile: 'build'` を使う場合は Vite 6.1 以降が必要です。
 - `@markdoc/markdoc` は tree-shaking が効かず、`renderers` だけを import しても markdown-it を含む約 140 KB が残ります。そのためクライアント用に公式の React レンダラー（約 30 行）をコピーして同梱しています。テストで公式と同じ HTML になることを確認しています。
 
-サンプルの Pages ページのバンドルサイズ（React を external にして esbuild で minify）:
+サンプルの Pages ページのバンドルサイズ（React を external にして Vite 8 の既定の Oxc で minify）:
 
 | 構成 | バイト数 |
 | --- | --- |
-| `compile: 'runtime'`（Pages client） | 208,997 |
-| `compile: 'build'`（Pages client） | 3,715 |
-| `compile: 'build'`（App client） | 4,276 |
+| `compile: 'runtime'`（Pages client） | 203,222 |
+| `compile: 'build'`（Pages client） | 3,753 |
+| `compile: 'build'`（App client） | 4,259 |
 | `compile: 'build'`（App server） | 3,614 |
 
 ## Vite との連携
