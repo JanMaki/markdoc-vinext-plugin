@@ -19,6 +19,6 @@
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": false
   },
-  "include": ["src/**/*", "test/**/*", "examples/**/*.ts", "examples/**/*.tsx", "scripts/**/*.ts"],
+  "include": ["src/**/*", "test/**/*", "examples/**/*.ts", "examples/**/*.tsx", "scripts/**/*.ts", "tsdown.config.ts"],
   "exclude": ["node_modules", "tmp", "dist"]
 }
