@@ -381,12 +381,12 @@ export default defineConfig({
 ## MDX との併用
 
 - Vinext の `vinext:mdx` は `.mdx` だけを対象にするため、このプラグインの `.md` / `.mdoc` とは衝突しません。
-- `@mdx-js/rollup` を手動で追加する場合、既定の `extension` は `/\.mdx?$/` で `.md` も含みます。次のように `.md` を除外してください。
+- `@mdx-js/rollup` を手動で追加する場合、既定で `.md` も変換対象になります（`mdExtensions` の既定値に `.md` を含むため）。`extension` オプションはありません。`include` で `.mdx` だけに絞ってください。
 
 ```ts
 import mdx from '@mdx-js/rollup';
 
-mdx({extension: /\.mdx$/});
+mdx({include: /\.mdx$/});
 ```
 
 プラグインの順序は `markdoc()` →（必要なら MDX）→ `vinext()` にします。
