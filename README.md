@@ -425,13 +425,13 @@ mdx({include: /\.mdx$/});
 
 ### プラグイン単体
 
-`bun test` で次の 3 種類のテストを実行します。Windows 11 / Bun 1.4.3 で、`bun run versions` が表示する次のバージョンを使って全 426 件の成功を確認しています。
+`bun test` で次の 3 種類のテストを実行します。Windows 11 / Bun 1.4.3 で、`bun run versions` が表示する次のバージョンを使って全 430 件の成功を確認しています。
 
 `vite@6.4.5`、`@markdoc/markdoc@0.5.11`、`js-yaml@4.3.2`、`react@19.3.1`、`react-dom@19.3.1`、`typescript@5.9.3`
 
 | 種類 | 場所 | 件数 | 内容 |
 | --- | --- | --- | --- |
-| unit | `test/unit/` | 321 | Vite を起動しない単体テスト |
+| unit | `test/unit/` | 325 | Vite を起動しない単体テスト |
 | golden | `test/golden/` | 44 | `examples/basic/` のサンプルと境界ケースの生成コードのスナップショット |
 | integration | `test/integration/` | 61 | Vite の build / dev サーバ / `resolveConfig` を使うテスト |
 
