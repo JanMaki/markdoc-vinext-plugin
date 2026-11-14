@@ -1,6 +1,6 @@
 /** プラグインのインスタンスごとの状態。 */
 
-import type {Alias, ViteDevServer} from 'vite';
+import type {Alias, UserConfig, ViteDevServer} from 'vite';
 import {createMarkdocCache} from '../cache';
 import {resolveProjectRoot} from '../options';
 import type {MarkdocCache, MarkdocVitePluginOptions} from '../types';
@@ -10,6 +10,8 @@ export type PluginState = {
   /** プロジェクトのルート。configResolved で確定する。 */
   root: string;
   alias: Alias[];
+  /** ユーザー設定の `define`。runnerImport はプロジェクトの設定ファイルを読まないため渡す。 */
+  define: NonNullable<UserConfig['define']>;
   isBuild: boolean;
   /** configureServer 済みで close されていない dev サーバ。 */
   devServers: Set<ViteDevServer>;
@@ -28,6 +30,7 @@ export function createPluginState(options: MarkdocVitePluginOptions): PluginStat
     options,
     root: resolveProjectRoot(options, process.cwd()),
     alias: [],
+    define: {},
     isBuild: false,
     devServers: new Set(),
     narrowSchemaWatch: false,

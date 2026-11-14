@@ -146,3 +146,23 @@ describe("transform: compile: 'build' fallbacks", () => {
     expect((await callHandler(plugin, ctx, {ssr: true})).map).not.toEqual({mappings: ''});
   });
 });
+
+describe("transform: compile: 'build' schema evaluation", () => {
+  const root = path.join(fx, 'define');
+  beforeAll(() => {
+    writeTree(root, {
+      'markdoc/tags.ts':
+        'const VERSION: string = __DOCS_VERSION__;\n' +
+        "export default {callout: {render: 'aside', attributes: {v: {type: String, default: VERSION}}}};\n",
+    });
+  });
+
+  test('the app define is applied to schema files', async () => {
+    const plugin = markdoc({dir: root, compile: 'build'});
+    callConfigResolved(plugin, {root, command: 'build', define: {__DOCS_VERSION__: JSON.stringify('DEFINED-1.2.3')}});
+    const code = (
+      await callTransform(plugin, fakePluginContext(), '{% callout %}x{% /callout %}\n', path.join(root, 'pages/d.md'))
+    )?.code;
+    expect(code).toContain('DEFINED-1.2.3');
+  });
+});
