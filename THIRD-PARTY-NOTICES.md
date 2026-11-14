@@ -31,7 +31,7 @@ THE SOFTWARE.
 
 ## @markdoc/next.js
 
-次のコードは、`@markdoc/next.js` の `src/loader.js` と `src/runtime.js` を元にしています。
+次のコードは、`@markdoc/next.js` 0.6.2 の `src/loader.js` と `src/runtime.js` を元にしています。
 
 - `src/runtime/runtime.js` の `displayName` / `getSchema` / `defaultObject`
 - `src/codegen/` が生成するモジュールのテンプレート（データ取得関数、`frontmatter.nextjs` の export、default export のコンポーネント、スキーマの import と組み立て）
