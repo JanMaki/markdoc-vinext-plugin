@@ -1,27 +1,27 @@
-# Dependencies
+# 依存パッケージ
 node_modules/
 
-# Build output
-dist/
+# ビルド出力
+/dist/
 .next/
 .vinext/
-out/
+/out/
 *.tsbuildinfo
 
-# Vite cache
+# Vite のキャッシュ
 .vite/
 
-# Logs
+# ログ
 *.log
 npm-debug.log*
 bun-debug.log*
 
-# Environment
+# 環境変数
 .env
 .env.*
 !.env.example
 
-# Editors / IDE
+# エディタ / IDE
 .idea/
 .vscode/
 *.swp
@@ -30,3 +30,6 @@ bun-debug.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# テストの出力
+tmp/
