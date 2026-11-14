@@ -1,0 +1,24 @@
+# https://bun.com/docs/runtime/bunfig
+
+[install]
+# リリースから 3 日（259200 秒）以上経過したバージョンのみ入れる。
+# https://bun.com/docs/runtime/bunfig#install-minimumreleaseage
+minimumReleaseAge = 259200
+
+# GMO Flatt Security Takumi Guard。トークンなしの匿名利用で、ブロックのみ有効。
+# https://shisho.dev/docs/t/guard/quickstart/npm.md
+registry = "https://npm.flatt.tech/"
+
+[install.security]
+# Socket Security の Bun スキャナ。トークンなしは無料の public API モード。
+# devDependencies に @socketsecurity/bun-security-scanner が必要。
+# https://github.com/SocketDev/bun-security-scanner
+# https://bun.com/docs/runtime/bunfig#install-security-scanner
+scanner = "@socketsecurity/bun-security-scanner"
+
+[test]
+# NODE_ENV を React の読み込み前に固定する。
+preload = ["./test/setup.ts"]
+
+# カバレッジの対象を src のみにする。
+coveragePathIgnorePatterns = ["tmp/**", "examples/**", "test/**", "scripts/**"]

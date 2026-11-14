@@ -1,0 +1,3289 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`transformMarkdoc pages compile=runtime consumer=client mode=static fastRefresh=false 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: Get started with Markdoc\\ndescription: How to get started with Markdoc on Vinext\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% callout type=\\"info\\" %}\\nThis is a custom **callout** tag rendered by the sample schema.\\n{% /callout %}\\n\\nThe product variable is {% $product %}. Uppercased greeting: {% upper(\\"hello\\") %}.\\n\\n{% tag /%}\\n\\n{% partial file=\\"footer.md\\" /%}\\n";
+const filepath = "/docs/getting-started.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"footer.md\\":\\"Footer partial: this line is included via \`{% partial file=\\\\\\"footer.md\\\\\\" /%}\`.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 90,
+    "sources": [
+      "examples/basic/pages/docs/getting-started.md",
+    ],
+    "sourcesContentHash": "a36b873458d9cc93c997ae10ce50314b5b96b32dd232dd934adedaeb1710b689",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc pages compile=runtime consumer=client mode=static fastRefresh=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: Get started with Markdoc\\ndescription: How to get started with Markdoc on Vinext\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% callout type=\\"info\\" %}\\nThis is a custom **callout** tag rendered by the sample schema.\\n{% /callout %}\\n\\nThe product variable is {% $product %}. Uppercased greeting: {% upper(\\"hello\\") %}.\\n\\n{% tag /%}\\n\\n{% partial file=\\"footer.md\\" /%}\\n";
+const filepath = "/docs/getting-started.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"footer.md\\":\\"Footer partial: this line is included via \`{% partial file=\\\\\\"footer.md\\\\\\" /%}\`.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+// fastRefresh: Fast Refresh の境界にするため、コンポーネントを別モジュールに置く。
+export const __markdocInternal = {components, getMarkdocData, renderers: Markdoc.renderers};
+export {default} from "./getting-started.md?markdoc-component";
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": {
+    "lineCount": 85,
+    "sources": [
+      "examples/basic/pages/docs/getting-started.md",
+    ],
+    "sourcesContentHash": "a36b873458d9cc93c997ae10ce50314b5b96b32dd232dd934adedaeb1710b689",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc pages compile=runtime consumer=client mode=server fastRefresh=false 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: Get started with Markdoc\\ndescription: How to get started with Markdoc on Vinext\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% callout type=\\"info\\" %}\\nThis is a custom **callout** tag rendered by the sample schema.\\n{% /callout %}\\n\\nThe product variable is {% $product %}. Uppercased greeting: {% upper(\\"hello\\") %}.\\n\\n{% tag /%}\\n\\n{% partial file=\\"footer.md\\" /%}\\n";
+const filepath = "/docs/getting-started.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"footer.md\\":\\"Footer partial: this line is included via \`{% partial file=\\\\\\"footer.md\\\\\\" /%}\`.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export async function getServerSideProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 90,
+    "sources": [
+      "examples/basic/pages/docs/getting-started.md",
+    ],
+    "sourcesContentHash": "a36b873458d9cc93c997ae10ce50314b5b96b32dd232dd934adedaeb1710b689",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc pages compile=runtime consumer=client mode=server fastRefresh=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: Get started with Markdoc\\ndescription: How to get started with Markdoc on Vinext\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% callout type=\\"info\\" %}\\nThis is a custom **callout** tag rendered by the sample schema.\\n{% /callout %}\\n\\nThe product variable is {% $product %}. Uppercased greeting: {% upper(\\"hello\\") %}.\\n\\n{% tag /%}\\n\\n{% partial file=\\"footer.md\\" /%}\\n";
+const filepath = "/docs/getting-started.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"footer.md\\":\\"Footer partial: this line is included via \`{% partial file=\\\\\\"footer.md\\\\\\" /%}\`.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export async function getServerSideProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+// fastRefresh: Fast Refresh の境界にするため、コンポーネントを別モジュールに置く。
+export const __markdocInternal = {components, getMarkdocData, renderers: Markdoc.renderers};
+export {default} from "./getting-started.md?markdoc-component";
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": {
+    "lineCount": 85,
+    "sources": [
+      "examples/basic/pages/docs/getting-started.md",
+    ],
+    "sourcesContentHash": "a36b873458d9cc93c997ae10ce50314b5b96b32dd232dd934adedaeb1710b689",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc pages compile=build consumer=client mode=static fastRefresh=false 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"Get started with Markdoc\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"info\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"This is a custom \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"strong\\",\\"attributes\\":{},\\"children\\":[\\"callout\\"]},\\" tag rendered by the sample schema.\\"]}]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"The product variable is \\",\\"Vinext\\",\\". Uppercased greeting: \\",\\"HELLO\\",\\".\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Tag\\",\\"attributes\\":{},\\"children\\":[]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Footer partial: this line is included via \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"{% partial file=\\\\\\"footer.md\\\\\\" /%}\\"]},\\".\\"]}]},\\"frontmatter\\":{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"},\\"file\\":{\\"path\\":\\"/docs/getting-started.md\\"}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc pages compile=build consumer=client mode=static fastRefresh=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"Get started with Markdoc\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"info\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"This is a custom \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"strong\\",\\"attributes\\":{},\\"children\\":[\\"callout\\"]},\\" tag rendered by the sample schema.\\"]}]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"The product variable is \\",\\"Vinext\\",\\". Uppercased greeting: \\",\\"HELLO\\",\\".\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Tag\\",\\"attributes\\":{},\\"children\\":[]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Footer partial: this line is included via \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"{% partial file=\\\\\\"footer.md\\\\\\" /%}\\"]},\\".\\"]}]},\\"frontmatter\\":{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"},\\"file\\":{\\"path\\":\\"/docs/getting-started.md\\"}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+// fastRefresh: Fast Refresh の境界にするため、コンポーネントを別モジュールに置く。
+export const __markdocInternal = {components, getMarkdocData, renderers: Markdoc.renderers};
+export {default} from "./getting-started.md?markdoc-component";
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc pages compile=build consumer=client mode=server fastRefresh=false 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"Get started with Markdoc\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"info\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"This is a custom \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"strong\\",\\"attributes\\":{},\\"children\\":[\\"callout\\"]},\\" tag rendered by the sample schema.\\"]}]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"The product variable is \\",\\"Vinext\\",\\". Uppercased greeting: \\",\\"HELLO\\",\\".\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Tag\\",\\"attributes\\":{},\\"children\\":[]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Footer partial: this line is included via \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"{% partial file=\\\\\\"footer.md\\\\\\" /%}\\"]},\\".\\"]}]},\\"frontmatter\\":{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"},\\"file\\":{\\"path\\":\\"/docs/getting-started.md\\"}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getServerSideProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc pages compile=build consumer=client mode=server fastRefresh=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"Get started with Markdoc\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"info\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"This is a custom \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"strong\\",\\"attributes\\":{},\\"children\\":[\\"callout\\"]},\\" tag rendered by the sample schema.\\"]}]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"The product variable is \\",\\"Vinext\\",\\". Uppercased greeting: \\",\\"HELLO\\",\\".\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Tag\\",\\"attributes\\":{},\\"children\\":[]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Footer partial: this line is included via \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"{% partial file=\\\\\\"footer.md\\\\\\" /%}\\"]},\\".\\"]}]},\\"frontmatter\\":{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"},\\"file\\":{\\"path\\":\\"/docs/getting-started.md\\"}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getServerSideProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+// fastRefresh: Fast Refresh の境界にするため、コンポーネントを別モジュールに置く。
+export const __markdocInternal = {components, getMarkdocData, renderers: Markdoc.renderers};
+export {default} from "./getting-started.md?markdoc-component";
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc pages compile=build consumer=server mode=static fastRefresh=false 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+import Markdoc from '@markdoc/markdoc';
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"Get started with Markdoc\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"info\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"This is a custom \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"strong\\",\\"attributes\\":{},\\"children\\":[\\"callout\\"]},\\" tag rendered by the sample schema.\\"]}]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"The product variable is \\",\\"Vinext\\",\\". Uppercased greeting: \\",\\"HELLO\\",\\".\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Tag\\",\\"attributes\\":{},\\"children\\":[]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Footer partial: this line is included via \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"{% partial file=\\\\\\"footer.md\\\\\\" /%}\\"]},\\".\\"]}]},\\"frontmatter\\":{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"},\\"file\\":{\\"path\\":\\"/docs/getting-started.md\\"}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 43,
+    "sources": [
+      "examples/basic/pages/docs/getting-started.md",
+    ],
+    "sourcesContentHash": "a36b873458d9cc93c997ae10ce50314b5b96b32dd232dd934adedaeb1710b689",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc pages compile=build consumer=server mode=static fastRefresh=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+import Markdoc from '@markdoc/markdoc';
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"Get started with Markdoc\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"info\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"This is a custom \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"strong\\",\\"attributes\\":{},\\"children\\":[\\"callout\\"]},\\" tag rendered by the sample schema.\\"]}]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"The product variable is \\",\\"Vinext\\",\\". Uppercased greeting: \\",\\"HELLO\\",\\".\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Tag\\",\\"attributes\\":{},\\"children\\":[]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Footer partial: this line is included via \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"{% partial file=\\\\\\"footer.md\\\\\\" /%}\\"]},\\".\\"]}]},\\"frontmatter\\":{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"},\\"file\\":{\\"path\\":\\"/docs/getting-started.md\\"}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+// fastRefresh: Fast Refresh の境界にするため、コンポーネントを別モジュールに置く。
+export const __markdocInternal = {components, getMarkdocData, renderers: Markdoc.renderers};
+export {default} from "./getting-started.md?markdoc-component";
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": {
+    "lineCount": 38,
+    "sources": [
+      "examples/basic/pages/docs/getting-started.md",
+    ],
+    "sourcesContentHash": "a36b873458d9cc93c997ae10ce50314b5b96b32dd232dd934adedaeb1710b689",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc pages compile=build consumer=server mode=server fastRefresh=false 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: Get started with Markdoc\\ndescription: How to get started with Markdoc on Vinext\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% callout type=\\"info\\" %}\\nThis is a custom **callout** tag rendered by the sample schema.\\n{% /callout %}\\n\\nThe product variable is {% $product %}. Uppercased greeting: {% upper(\\"hello\\") %}.\\n\\n{% tag /%}\\n\\n{% partial file=\\"footer.md\\" /%}\\n";
+const filepath = "/docs/getting-started.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"footer.md\\":\\"Footer partial: this line is included via \`{% partial file=\\\\\\"footer.md\\\\\\" /%}\`.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export async function getServerSideProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 90,
+    "sources": [
+      "examples/basic/pages/docs/getting-started.md",
+    ],
+    "sourcesContentHash": "a36b873458d9cc93c997ae10ce50314b5b96b32dd232dd934adedaeb1710b689",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc pages compile=build consumer=server mode=server fastRefresh=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: Get started with Markdoc\\ndescription: How to get started with Markdoc on Vinext\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% callout type=\\"info\\" %}\\nThis is a custom **callout** tag rendered by the sample schema.\\n{% /callout %}\\n\\nThe product variable is {% $product %}. Uppercased greeting: {% upper(\\"hello\\") %}.\\n\\n{% tag /%}\\n\\n{% partial file=\\"footer.md\\" /%}\\n";
+const filepath = "/docs/getting-started.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"footer.md\\":\\"Footer partial: this line is included via \`{% partial file=\\\\\\"footer.md\\\\\\" /%}\`.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export async function getServerSideProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+// fastRefresh: Fast Refresh の境界にするため、コンポーネントを別モジュールに置く。
+export const __markdocInternal = {components, getMarkdocData, renderers: Markdoc.renderers};
+export {default} from "./getting-started.md?markdoc-component";
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": {
+    "lineCount": 85,
+    "sources": [
+      "examples/basic/pages/docs/getting-started.md",
+    ],
+    "sourcesContentHash": "a36b873458d9cc93c997ae10ce50314b5b96b32dd232dd934adedaeb1710b689",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc app compile=runtime consumer=client mode=static fastRefresh=false 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: App Router Markdoc page\\ndescription: Sample App Router page with frontmatter.nextjs metadata\\nnextjs:\\n  metadata:\\n    title: App Router Markdoc page\\n    description: Sample App Router page with frontmatter.nextjs metadata\\n  revalidate: 60\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% callout type=\\"info\\" %}\\nApp Router 向けのサンプルです。\`metadata\` と \`revalidate\` は\\n\`frontmatter.nextjs\` から export されます。\\n{% /callout %}\\n\\nThe product variable is {% $product %}. Uppercased greeting: {% upper(\\"hello\\") %}.\\n\\n{% tag /%}\\n\\n{% partial file=\\"footer.md\\" /%}\\n";
+const filepath = "/docs/page.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"footer.md\\":\\"Footer partial: this line is included via \`{% partial file=\\\\\\"footer.md\\\\\\" /%}\`.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export const metadata = frontmatter.nextjs?.metadata;
+export const revalidate = frontmatter.nextjs?.revalidate;
+export const markdoc = {frontmatter};
+export default async function MarkdocComponent(props) {
+  const markdoc = await getMarkdocData();
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 85,
+    "sources": [
+      "examples/basic/app/docs/page.md",
+    ],
+    "sourcesContentHash": "65c8989ccf0e64714fb2a26a2e603a106126291cbbc0bc92229e9dd593e77147",
+  },
+  "meta": {
+    "appMode": true,
+    "filepath": "/docs/page.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc app compile=runtime consumer=client mode=static fastRefresh=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: App Router Markdoc page\\ndescription: Sample App Router page with frontmatter.nextjs metadata\\nnextjs:\\n  metadata:\\n    title: App Router Markdoc page\\n    description: Sample App Router page with frontmatter.nextjs metadata\\n  revalidate: 60\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% callout type=\\"info\\" %}\\nApp Router 向けのサンプルです。\`metadata\` と \`revalidate\` は\\n\`frontmatter.nextjs\` から export されます。\\n{% /callout %}\\n\\nThe product variable is {% $product %}. Uppercased greeting: {% upper(\\"hello\\") %}.\\n\\n{% tag /%}\\n\\n{% partial file=\\"footer.md\\" /%}\\n";
+const filepath = "/docs/page.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"footer.md\\":\\"Footer partial: this line is included via \`{% partial file=\\\\\\"footer.md\\\\\\" /%}\`.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export const metadata = frontmatter.nextjs?.metadata;
+export const revalidate = frontmatter.nextjs?.revalidate;
+export const markdoc = {frontmatter};
+// fastRefresh: Fast Refresh の境界にするため、コンポーネントを別モジュールに置く。
+export const __markdocInternal = {components, getMarkdocData, renderers: Markdoc.renderers};
+export {default} from "./page.md?markdoc-component";
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": {
+    "lineCount": 80,
+    "sources": [
+      "examples/basic/app/docs/page.md",
+    ],
+    "sourcesContentHash": "65c8989ccf0e64714fb2a26a2e603a106126291cbbc0bc92229e9dd593e77147",
+  },
+  "meta": {
+    "appMode": true,
+    "filepath": "/docs/page.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc app compile=build consumer=client mode=static fastRefresh=false 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"App Router Markdoc page\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"info\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"App Router 向けのサンプルです。\\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"metadata\\"]},\\" と \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"revalidate\\"]},\\" は\\",\\" \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"frontmatter.nextjs\\"]},\\" から export されます。\\"]}]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"The product variable is \\",\\"Vinext\\",\\". Uppercased greeting: \\",\\"HELLO\\",\\".\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Tag\\",\\"attributes\\":{},\\"children\\":[]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Footer partial: this line is included via \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"{% partial file=\\\\\\"footer.md\\\\\\" /%}\\"]},\\".\\"]}]},\\"frontmatter\\":{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\",\\"nextjs\\":{\\"metadata\\":{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\"},\\"revalidate\\":60}},\\"file\\":{\\"path\\":\\"/docs/page.md\\"}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\",\\"nextjs\\":{\\"metadata\\":{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\"},\\"revalidate\\":60}}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export const metadata = frontmatter.nextjs?.metadata;
+export const revalidate = frontmatter.nextjs?.revalidate;
+export const markdoc = {frontmatter};
+export default async function MarkdocComponent(props) {
+  const markdoc = await getMarkdocData();
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": true,
+    "filepath": "/docs/page.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc app compile=build consumer=client mode=static fastRefresh=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"App Router Markdoc page\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"info\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"App Router 向けのサンプルです。\\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"metadata\\"]},\\" と \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"revalidate\\"]},\\" は\\",\\" \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"frontmatter.nextjs\\"]},\\" から export されます。\\"]}]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"The product variable is \\",\\"Vinext\\",\\". Uppercased greeting: \\",\\"HELLO\\",\\".\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Tag\\",\\"attributes\\":{},\\"children\\":[]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Footer partial: this line is included via \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"{% partial file=\\\\\\"footer.md\\\\\\" /%}\\"]},\\".\\"]}]},\\"frontmatter\\":{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\",\\"nextjs\\":{\\"metadata\\":{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\"},\\"revalidate\\":60}},\\"file\\":{\\"path\\":\\"/docs/page.md\\"}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\",\\"nextjs\\":{\\"metadata\\":{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\"},\\"revalidate\\":60}}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export const metadata = frontmatter.nextjs?.metadata;
+export const revalidate = frontmatter.nextjs?.revalidate;
+export const markdoc = {frontmatter};
+// fastRefresh: Fast Refresh の境界にするため、コンポーネントを別モジュールに置く。
+export const __markdocInternal = {components, getMarkdocData, renderers: Markdoc.renderers};
+export {default} from "./page.md?markdoc-component";
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": true,
+    "filepath": "/docs/page.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc app compile=build consumer=server mode=static fastRefresh=false 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+import Markdoc from '@markdoc/markdoc';
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"App Router Markdoc page\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"info\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"App Router 向けのサンプルです。\\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"metadata\\"]},\\" と \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"revalidate\\"]},\\" は\\",\\" \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"frontmatter.nextjs\\"]},\\" から export されます。\\"]}]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"The product variable is \\",\\"Vinext\\",\\". Uppercased greeting: \\",\\"HELLO\\",\\".\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Tag\\",\\"attributes\\":{},\\"children\\":[]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Footer partial: this line is included via \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"{% partial file=\\\\\\"footer.md\\\\\\" /%}\\"]},\\".\\"]}]},\\"frontmatter\\":{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\",\\"nextjs\\":{\\"metadata\\":{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\"},\\"revalidate\\":60}},\\"file\\":{\\"path\\":\\"/docs/page.md\\"}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\",\\"nextjs\\":{\\"metadata\\":{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\"},\\"revalidate\\":60}}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export const metadata = frontmatter.nextjs?.metadata;
+export const revalidate = frontmatter.nextjs?.revalidate;
+export const markdoc = {frontmatter};
+export default async function MarkdocComponent(props) {
+  const markdoc = await getMarkdocData();
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 38,
+    "sources": [
+      "examples/basic/app/docs/page.md",
+    ],
+    "sourcesContentHash": "65c8989ccf0e64714fb2a26a2e603a106126291cbbc0bc92229e9dd593e77147",
+  },
+  "meta": {
+    "appMode": true,
+    "filepath": "/docs/page.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc app compile=build consumer=server mode=static fastRefresh=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+import Markdoc from '@markdoc/markdoc';
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"App Router Markdoc page\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"info\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"App Router 向けのサンプルです。\\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"metadata\\"]},\\" と \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"revalidate\\"]},\\" は\\",\\" \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"frontmatter.nextjs\\"]},\\" から export されます。\\"]}]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"The product variable is \\",\\"Vinext\\",\\". Uppercased greeting: \\",\\"HELLO\\",\\".\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Tag\\",\\"attributes\\":{},\\"children\\":[]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Footer partial: this line is included via \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"{% partial file=\\\\\\"footer.md\\\\\\" /%}\\"]},\\".\\"]}]},\\"frontmatter\\":{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\",\\"nextjs\\":{\\"metadata\\":{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\"},\\"revalidate\\":60}},\\"file\\":{\\"path\\":\\"/docs/page.md\\"}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\",\\"nextjs\\":{\\"metadata\\":{\\"title\\":\\"App Router Markdoc page\\",\\"description\\":\\"Sample App Router page with frontmatter.nextjs metadata\\"},\\"revalidate\\":60}}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export const metadata = frontmatter.nextjs?.metadata;
+export const revalidate = frontmatter.nextjs?.revalidate;
+export const markdoc = {frontmatter};
+// fastRefresh: Fast Refresh の境界にするため、コンポーネントを別モジュールに置く。
+export const __markdocInternal = {components, getMarkdocData, renderers: Markdoc.renderers};
+export {default} from "./page.md?markdoc-component";
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": {
+    "lineCount": 33,
+    "sources": [
+      "examples/basic/app/docs/page.md",
+    ],
+    "sourcesContentHash": "65c8989ccf0e64714fb2a26a2e603a106126291cbbc0bc92229e9dd593e77147",
+  },
+  "meta": {
+    "appMode": true,
+    "filepath": "/docs/page.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc component compile=runtime consumer=client mode=static fastRefresh=false 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../markdoc/config.ts";
+import * as tags from "../markdoc/tags.ts";
+import * as nodes from "../markdoc/nodes.ts";
+import * as functions from "../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: Imported Markdoc component\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\nThis file is **not** under \`app/\` or \`pages/\`, so the plugin treats it as an\\nimported component: no \`getStaticProps\`, no \`metadata\` export, and\\n\`getMarkdocData()\` is called synchronously inside the default export\\n(same as the official loader's \\"import as frontend component\\" path).\\n\\n{% callout type=\\"warn\\" %}\\nImported as a component, not as a route.\\n{% /callout %}\\n";
+const filepath = undefined;
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = getMarkdocData();
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 83,
+    "sources": [
+      "examples/basic/components/note.md",
+    ],
+    "sourcesContentHash": "d75f2073fb9de2b977a87b1e3efc3e4f0e798f084c7a131369c9905c0f9bfbbc",
+  },
+  "meta": {
+    "appMode": false,
+    "isPage": false,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc component compile=runtime consumer=client mode=static fastRefresh=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../markdoc/config.ts";
+import * as tags from "../markdoc/tags.ts";
+import * as nodes from "../markdoc/nodes.ts";
+import * as functions from "../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: Imported Markdoc component\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\nThis file is **not** under \`app/\` or \`pages/\`, so the plugin treats it as an\\nimported component: no \`getStaticProps\`, no \`metadata\` export, and\\n\`getMarkdocData()\` is called synchronously inside the default export\\n(same as the official loader's \\"import as frontend component\\" path).\\n\\n{% callout type=\\"warn\\" %}\\nImported as a component, not as a route.\\n{% /callout %}\\n";
+const filepath = undefined;
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export const markdoc = {frontmatter};
+// fastRefresh: Fast Refresh の境界にするため、コンポーネントを別モジュールに置く。
+export const __markdocInternal = {components, getMarkdocData, renderers: Markdoc.renderers};
+export {default} from "./note.md?markdoc-component";
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": {
+    "lineCount": 78,
+    "sources": [
+      "examples/basic/components/note.md",
+    ],
+    "sourcesContentHash": "d75f2073fb9de2b977a87b1e3efc3e4f0e798f084c7a131369c9905c0f9bfbbc",
+  },
+  "meta": {
+    "appMode": false,
+    "isPage": false,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc component compile=build consumer=client mode=static fastRefresh=false 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../markdoc/config.ts";
+import * as tags from "../markdoc/tags.ts";
+import * as nodes from "../markdoc/nodes.ts";
+import * as functions from "../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"Imported Markdoc component\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"This file is \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"strong\\",\\"attributes\\":{},\\"children\\":[\\"not\\"]},\\" under \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"app/\\"]},\\" or \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"pages/\\"]},\\", so the plugin treats it as an\\",\\" \\",\\"imported component: no \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"getStaticProps\\"]},\\", no \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"metadata\\"]},\\" export, and\\",\\" \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"getMarkdocData()\\"]},\\" is called synchronously inside the default export\\",\\" \\",\\"(same as the official loader's \\\\\\"import as frontend component\\\\\\" path).\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"warn\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Imported as a component, not as a route.\\"]}]}]},\\"frontmatter\\":{\\"title\\":\\"Imported Markdoc component\\"},\\"file\\":{}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"Imported Markdoc component\\"}");
+
+function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = getMarkdocData();
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "isPage": false,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc component compile=build consumer=client mode=static fastRefresh=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../markdoc/config.ts";
+import * as tags from "../markdoc/tags.ts";
+import * as nodes from "../markdoc/nodes.ts";
+import * as functions from "../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"Imported Markdoc component\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"This file is \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"strong\\",\\"attributes\\":{},\\"children\\":[\\"not\\"]},\\" under \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"app/\\"]},\\" or \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"pages/\\"]},\\", so the plugin treats it as an\\",\\" \\",\\"imported component: no \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"getStaticProps\\"]},\\", no \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"metadata\\"]},\\" export, and\\",\\" \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"getMarkdocData()\\"]},\\" is called synchronously inside the default export\\",\\" \\",\\"(same as the official loader's \\\\\\"import as frontend component\\\\\\" path).\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"warn\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Imported as a component, not as a route.\\"]}]}]},\\"frontmatter\\":{\\"title\\":\\"Imported Markdoc component\\"},\\"file\\":{}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"Imported Markdoc component\\"}");
+
+function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export const markdoc = {frontmatter};
+// fastRefresh: Fast Refresh の境界にするため、コンポーネントを別モジュールに置く。
+export const __markdocInternal = {components, getMarkdocData, renderers: Markdoc.renderers};
+export {default} from "./note.md?markdoc-component";
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "isPage": false,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc component compile=build consumer=server mode=static fastRefresh=false 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+import Markdoc from '@markdoc/markdoc';
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../markdoc/config.ts";
+import * as tags from "../markdoc/tags.ts";
+import * as nodes from "../markdoc/nodes.ts";
+import * as functions from "../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"Imported Markdoc component\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"This file is \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"strong\\",\\"attributes\\":{},\\"children\\":[\\"not\\"]},\\" under \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"app/\\"]},\\" or \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"pages/\\"]},\\", so the plugin treats it as an\\",\\" \\",\\"imported component: no \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"getStaticProps\\"]},\\", no \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"metadata\\"]},\\" export, and\\",\\" \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"getMarkdocData()\\"]},\\" is called synchronously inside the default export\\",\\" \\",\\"(same as the official loader's \\\\\\"import as frontend component\\\\\\" path).\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"warn\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Imported as a component, not as a route.\\"]}]}]},\\"frontmatter\\":{\\"title\\":\\"Imported Markdoc component\\"},\\"file\\":{}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"Imported Markdoc component\\"}");
+
+function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = getMarkdocData();
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 36,
+    "sources": [
+      "examples/basic/components/note.md",
+    ],
+    "sourcesContentHash": "d75f2073fb9de2b977a87b1e3efc3e4f0e798f084c7a131369c9905c0f9bfbbc",
+  },
+  "meta": {
+    "appMode": false,
+    "isPage": false,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc component compile=build consumer=server mode=static fastRefresh=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+import Markdoc from '@markdoc/markdoc';
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../markdoc/config.ts";
+import * as tags from "../markdoc/tags.ts";
+import * as nodes from "../markdoc/nodes.ts";
+import * as functions from "../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"Imported Markdoc component\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"This file is \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"strong\\",\\"attributes\\":{},\\"children\\":[\\"not\\"]},\\" under \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"app/\\"]},\\" or \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"pages/\\"]},\\", so the plugin treats it as an\\",\\" \\",\\"imported component: no \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"getStaticProps\\"]},\\", no \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"metadata\\"]},\\" export, and\\",\\" \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"getMarkdocData()\\"]},\\" is called synchronously inside the default export\\",\\" \\",\\"(same as the official loader's \\\\\\"import as frontend component\\\\\\" path).\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"warn\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Imported as a component, not as a route.\\"]}]}]},\\"frontmatter\\":{\\"title\\":\\"Imported Markdoc component\\"},\\"file\\":{}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"Imported Markdoc component\\"}");
+
+function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export const markdoc = {frontmatter};
+// fastRefresh: Fast Refresh の境界にするため、コンポーネントを別モジュールに置く。
+export const __markdocInternal = {components, getMarkdocData, renderers: Markdoc.renderers};
+export {default} from "./note.md?markdoc-component";
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": {
+    "lineCount": 31,
+    "sources": [
+      "examples/basic/components/note.md",
+    ],
+    "sourcesContentHash": "d75f2073fb9de2b977a87b1e3efc3e4f0e798f084c7a131369c9905c0f9bfbbc",
+  },
+  "meta": {
+    "appMode": false,
+    "isPage": false,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc pages router=app 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: Get started with Markdoc\\ndescription: How to get started with Markdoc on Vinext\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% callout type=\\"info\\" %}\\nThis is a custom **callout** tag rendered by the sample schema.\\n{% /callout %}\\n\\nThe product variable is {% $product %}. Uppercased greeting: {% upper(\\"hello\\") %}.\\n\\n{% tag /%}\\n\\n{% partial file=\\"footer.md\\" /%}\\n";
+const filepath = "/docs/getting-started.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"footer.md\\":\\"Footer partial: this line is included via \`{% partial file=\\\\\\"footer.md\\\\\\" /%}\`.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export const metadata = frontmatter.nextjs?.metadata;
+export const revalidate = frontmatter.nextjs?.revalidate;
+export const markdoc = {frontmatter};
+export default async function MarkdocComponent(props) {
+  const markdoc = await getMarkdocData();
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 85,
+    "sources": [
+      "examples/basic/pages/docs/getting-started.md",
+    ],
+    "sourcesContentHash": "a36b873458d9cc93c997ae10ce50314b5b96b32dd232dd934adedaeb1710b689",
+  },
+  "meta": {
+    "appMode": true,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc app router=pages 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: App Router Markdoc page\\ndescription: Sample App Router page with frontmatter.nextjs metadata\\nnextjs:\\n  metadata:\\n    title: App Router Markdoc page\\n    description: Sample App Router page with frontmatter.nextjs metadata\\n  revalidate: 60\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% callout type=\\"info\\" %}\\nApp Router 向けのサンプルです。\`metadata\` と \`revalidate\` は\\n\`frontmatter.nextjs\` から export されます。\\n{% /callout %}\\n\\nThe product variable is {% $product %}. Uppercased greeting: {% upper(\\"hello\\") %}.\\n\\n{% tag /%}\\n\\n{% partial file=\\"footer.md\\" /%}\\n";
+const filepath = "/docs/page.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"footer.md\\":\\"Footer partial: this line is included via \`{% partial file=\\\\\\"footer.md\\\\\\" /%}\`.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 90,
+    "sources": [
+      "examples/basic/app/docs/page.md",
+    ],
+    "sourcesContentHash": "65c8989ccf0e64714fb2a26a2e603a106126291cbbc0bc92229e9dd593e77147",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/page.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc app nextjsExports=['title','dynamic'] 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ntitle: App Router Markdoc page\\ndescription: Sample App Router page with frontmatter.nextjs metadata\\nnextjs:\\n  metadata:\\n    title: App Router Markdoc page\\n    description: Sample App Router page with frontmatter.nextjs metadata\\n  revalidate: 60\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% callout type=\\"info\\" %}\\nApp Router 向けのサンプルです。\`metadata\` と \`revalidate\` は\\n\`frontmatter.nextjs\` から export されます。\\n{% /callout %}\\n\\nThe product variable is {% $product %}. Uppercased greeting: {% upper(\\"hello\\") %}.\\n\\n{% tag /%}\\n\\n{% partial file=\\"footer.md\\" /%}\\n";
+const filepath = "/docs/page.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"footer.md\\":\\"Footer partial: this line is included via \`{% partial file=\\\\\\"footer.md\\\\\\" /%}\`.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export const title = frontmatter.nextjs?.title;
+export const dynamic = frontmatter.nextjs?.dynamic;
+export const markdoc = {frontmatter};
+export default async function MarkdocComponent(props) {
+  const markdoc = await getMarkdocData();
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 85,
+    "sources": [
+      "examples/basic/app/docs/page.md",
+    ],
+    "sourcesContentHash": "65c8989ccf0e64714fb2a26a2e603a106126291cbbc0bc92229e9dd593e77147",
+  },
+  "meta": {
+    "appMode": true,
+    "filepath": "/docs/page.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc dir option compile=build 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+const schema = {};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"No schema\\"]}]},\\"frontmatter\\":{},\\"file\\":{\\"path\\":\\"/index.md\\"}}";
+const frontmatter = JSON.parse("{}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "filepath": "/index.md",
+    "isPage": true,
+    "schemaDir": "<root>/tmp/test/golden/no-schema/markdoc",
+  },
+  "watchFiles": [],
+}
+`;
+
+exports[`transformMarkdoc missing schema dir 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+const schema = {};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "# No schema\\n";
+const filepath = "/index.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 81,
+    "sources": [
+      "tmp/test/golden/no-schema/pages/index.md",
+    ],
+    "sourcesContentHash": "5a5a346eff40b5b5854e59bb38179ad74018655fa3b9e2f130403b4e835196c8",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/index.md",
+    "isPage": true,
+    "schemaDir": "<root>/tmp/test/golden/no-schema/markdoc",
+  },
+  "watchFiles": [],
+}
+`;
+
+exports[`transformMarkdoc pages tokenizer allowComments=false slots=true 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":false}"));
+
+const source = "---\\ntitle: Get started with Markdoc\\ndescription: How to get started with Markdoc on Vinext\\n---\\n\\n# {% $markdoc.frontmatter.title %}\\n\\n{% callout type=\\"info\\" %}\\nThis is a custom **callout** tag rendered by the sample schema.\\n{% /callout %}\\n\\nThe product variable is {% $product %}. Uppercased greeting: {% upper(\\"hello\\") %}.\\n\\n{% tag /%}\\n\\n{% partial file=\\"footer.md\\" /%}\\n";
+const filepath = "/docs/getting-started.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":true};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"footer.md\\":\\"Footer partial: this line is included via \`{% partial file=\\\\\\"footer.md\\\\\\" /%}\`.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 90,
+    "sources": [
+      "examples/basic/pages/docs/getting-started.md",
+    ],
+    "sourcesContentHash": "a36b873458d9cc93c997ae10ce50314b5b96b32dd232dd934adedaeb1710b689",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc missing schema dir compile=build 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+const schema = {};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"No schema\\"]}]},\\"frontmatter\\":{},\\"file\\":{\\"path\\":\\"/index.md\\"}}";
+const frontmatter = JSON.parse("{}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "filepath": "/index.md",
+    "isPage": true,
+    "schemaDir": "<root>/tmp/test/golden/no-schema/markdoc",
+  },
+  "watchFiles": [],
+}
+`;
+
+exports[`transformMarkdoc pages tokenizer allowComments=false slots=true compile=build 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+import * as config from "../../markdoc/config.ts";
+import * as tags from "../../markdoc/tags.ts";
+import * as nodes from "../../markdoc/nodes.ts";
+import * as functions from "../../markdoc/functions.ts";
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"Get started with Markdoc\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Callout\\",\\"attributes\\":{\\"type\\":\\"info\\"},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"This is a custom \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"strong\\",\\"attributes\\":{},\\"children\\":[\\"callout\\"]},\\" tag rendered by the sample schema.\\"]}]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"The product variable is \\",\\"Vinext\\",\\". Uppercased greeting: \\",\\"HELLO\\",\\".\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"Tag\\",\\"attributes\\":{},\\"children\\":[]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Footer partial: this line is included via \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"code\\",\\"attributes\\":{},\\"children\\":[\\"{% partial file=\\\\\\"footer.md\\\\\\" /%}\\"]},\\".\\"]}]},\\"frontmatter\\":{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"},\\"file\\":{\\"path\\":\\"/docs/getting-started.md\\"}}";
+const frontmatter = JSON.parse("{\\"title\\":\\"Get started with Markdoc\\",\\"description\\":\\"How to get started with Markdoc on Vinext\\"}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "filepath": "/docs/getting-started.md",
+    "isPage": true,
+    "schemaDir": "<root>/examples/basic/markdoc",
+  },
+  "watchFiles": [
+    "examples/basic/markdoc/partials/footer.md",
+    "examples/basic/markdoc/config.ts",
+    "examples/basic/markdoc/tags.ts",
+    "examples/basic/markdoc/nodes.ts",
+    "examples/basic/markdoc/functions.ts",
+  ],
+}
+`;
+
+exports[`transformMarkdoc frontmatter Date compile=runtime 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+const schema = {};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\ndate: 2024-01-02\\nnested:\\n  at: 2024-01-03T04:05:06Z\\n---\\n\\n# {% $markdoc.frontmatter.date %}\\n";
+const filepath = "/date.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 81,
+    "sources": [
+      "tmp/test/golden/frontmatter/pages/date.md",
+    ],
+    "sourcesContentHash": "6c68f42bc6ef8176d27e39ac96b7db71b1131653f1c18a652e6d93d671dbf42a",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/date.md",
+    "isPage": true,
+    "schemaDir": "<root>/tmp/test/golden/frontmatter/markdoc",
+  },
+  "watchFiles": [],
+}
+`;
+
+exports[`transformMarkdoc frontmatter $$mdtype compile=runtime 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+const schema = {};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "---\\nmeta:\\n  $$mdtype: Tag\\n  name: h1\\n---\\n\\n# mdtype\\n";
+const filepath = "/mdtype.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 81,
+    "sources": [
+      "tmp/test/golden/frontmatter/pages/mdtype.md",
+    ],
+    "sourcesContentHash": "535930ed586796bb63f864c3ffd0126747b107f40be8779f52a49f270a40265b",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/mdtype.md",
+    "isPage": true,
+    "schemaDir": "<root>/tmp/test/golden/frontmatter/markdoc",
+  },
+  "watchFiles": [],
+}
+`;
+
+exports[`transformMarkdoc partial __proto__.md compile=runtime 1`] = `
+{
+  "code": 
+"import React from 'react';
+// js-yaml v5 には default export がなく、Vite 8 / Rolldown は default import をエラーにする。
+import {load as yamlLoad} from 'js-yaml';
+// default import は Vite の CJS interop と Node ESM の両方で動く。
+import Markdoc from '@markdoc/markdoc';
+
+import {getSchema, defaultObject, sanitizeFrontmatter} from "virtual:markdoc-vinext/runtime";
+// スキーマモジュールは Vite のパイプライン (TypeScript / ESM) で処理する。
+const config = {};
+const tags = {};
+const nodes = {};
+const functions = {};
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const tokenizer = new Markdoc.Tokenizer(JSON.parse("{\\"allowComments\\":true}"));
+
+const source = "# Proto\\n\\n{% partial file=\\"__proto__.md\\" /%}\\n";
+const filepath = "/index.md";
+const tokens = tokenizer.tokenize(source);
+const parseOptions = {"slots":false};
+const ast = Markdoc.parse(tokens, parseOptions);
+
+// オブジェクト以外の YAML (\`~\`、\`null\`、スカラー) は {} にし、\`frontmatter.nextjs\` で例外を出さない。
+const frontmatter = (() => {
+  const loaded = ast.attributes.frontmatter ? yamlLoad(ast.attributes.frontmatter) : {};
+  return loaded && typeof loaded === 'object' ? sanitizeFrontmatter(loaded) : {};
+})();
+
+const {components, ...rest} = getSchema(schema);
+
+async function getMarkdocData(context = {}) {
+  // "__proto__" 等のキーを自身のプロパティとして残すため、オブジェクトリテラルではなく JSON.parse を使う。
+  const partials = JSON.parse("{\\"__proto__.md\\":\\"Partial named __proto__.\\\\n\\"}");
+
+  // Markdoc.transform は partial を AST で受け取る。
+  Object.keys(partials).forEach((key) => {
+    const tokens = tokenizer.tokenize(partials[key]);
+    partials[key] = Markdoc.parse(tokens, parseOptions);
+  });
+
+  const cfg = {
+    ...rest,
+    variables: {
+      ...(rest ? rest.variables : {}),
+      markdoc: {frontmatter},
+      // getServerSideProps から渡すリクエスト時の変数。
+      ...(context.variables || {})
+    },
+    partials,
+    source,
+  };
+
+  // server 側の変数を使えるよう、データ取得関数の中で transform する。
+  const content = await Markdoc.transform(ast, cfg);
+
+  // undefined の値を除去する。
+  return JSON.parse(
+    JSON.stringify({
+      content,
+      frontmatter,
+      file: {
+        path: filepath,
+      },
+    })
+  );
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": {
+    "lineCount": 90,
+    "sources": [
+      "tmp/test/golden/proto-partial/pages/index.md",
+    ],
+    "sourcesContentHash": "e97fd6ff750ccbb42355350ade0ba6617085415fe5e91f5cbad4ce9c59d64a82",
+  },
+  "meta": {
+    "appMode": false,
+    "filepath": "/index.md",
+    "isPage": true,
+    "schemaDir": "<root>/tmp/test/golden/proto-partial/markdoc",
+  },
+  "watchFiles": [
+    "tmp/test/golden/proto-partial/markdoc/partials/__proto__.md",
+  ],
+}
+`;
+
+exports[`transformMarkdoc frontmatter Date compile=build 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+const schema = {};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"2024-01-02T00:00:00.000Z\\"]}]},\\"frontmatter\\":{\\"date\\":\\"2024-01-02T00:00:00.000Z\\",\\"nested\\":{\\"at\\":\\"2024-01-03T04:05:06.000Z\\"}},\\"file\\":{\\"path\\":\\"/date.md\\"}}";
+const frontmatter = ((value) => {
+  for (const keys of [["date"],["nested","at"]]) {
+    const parent = keys.slice(0, -1).reduce((target, key) => target[key], value);
+    parent[keys[keys.length - 1]] = new Date(parent[keys[keys.length - 1]]);
+  }
+  return value;
+})(JSON.parse("{\\"date\\":\\"2024-01-02T00:00:00.000Z\\",\\"nested\\":{\\"at\\":\\"2024-01-03T04:05:06.000Z\\"}}"));
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "filepath": "/date.md",
+    "isPage": true,
+    "schemaDir": "<root>/tmp/test/golden/frontmatter/markdoc",
+  },
+  "watchFiles": [],
+}
+`;
+
+exports[`transformMarkdoc frontmatter $$mdtype compile=build 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+const schema = {};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"mdtype\\"]}]},\\"frontmatter\\":{\\"meta\\":{\\"name\\":\\"h1\\"}},\\"file\\":{\\"path\\":\\"/mdtype.md\\"}}";
+const frontmatter = JSON.parse("{\\"meta\\":{\\"name\\":\\"h1\\"}}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "filepath": "/mdtype.md",
+    "isPage": true,
+    "schemaDir": "<root>/tmp/test/golden/frontmatter/markdoc",
+  },
+  "watchFiles": [],
+}
+`;
+
+exports[`transformMarkdoc partial __proto__.md compile=build 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+const config = {};
+const tags = {};
+const nodes = {};
+const functions = {};
+const schema = {
+tags: defaultObject(tags),
+nodes: defaultObject(nodes),
+functions: defaultObject(functions),
+...defaultObject(config),
+};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"Proto\\"]},{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"p\\",\\"attributes\\":{},\\"children\\":[\\"Partial named \\",{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"strong\\",\\"attributes\\":{},\\"children\\":[\\"proto\\"]},\\".\\"]}]},\\"frontmatter\\":{},\\"file\\":{\\"path\\":\\"/index.md\\"}}";
+const frontmatter = JSON.parse("{}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "filepath": "/index.md",
+    "isPage": true,
+    "schemaDir": "<root>/tmp/test/golden/proto-partial/markdoc",
+  },
+  "watchFiles": [
+    "tmp/test/golden/proto-partial/markdoc/partials/__proto__.md",
+  ],
+}
+`;
+
+exports[`transformMarkdoc frontmatter $$mdtype in an array compile=build 1`] = `
+{
+  "code": 
+"import React from 'react';
+import {getSchema, defaultObject, renderReact} from "virtual:markdoc-vinext/runtime";
+// 下の tree はビルド時に transform 済み (compile: 'build')。client は同梱のレンダラーのみ使う。
+const Markdoc = {renderers: {react: renderReact}};
+// 描画コンポーネントのためにスキーマモジュールを import する。
+const schema = {};
+
+const {components} = getSchema(schema);
+// transform 済みの renderable tree。ソース、partial、YAML ローダーは含まない。
+const markdocData = "{\\"content\\":{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"article\\",\\"attributes\\":{},\\"children\\":[{\\"$$mdtype\\":\\"Tag\\",\\"name\\":\\"h1\\",\\"attributes\\":{},\\"children\\":[\\"mdtype array\\"]}]},\\"frontmatter\\":{\\"list\\":[{\\"name\\":\\"h1\\"},\\"plain\\"]},\\"file\\":{\\"path\\":\\"/mdtype-array.md\\"}}";
+const frontmatter = JSON.parse("{\\"list\\":[{\\"name\\":\\"h1\\"},\\"plain\\"]}");
+
+async function getMarkdocData() {
+  return JSON.parse(markdocData);
+}
+
+export async function getStaticProps(context) {
+  return {
+    props: {
+      markdoc: await getMarkdocData(context),
+    },
+  };
+}
+export const markdoc = {frontmatter};
+export default function MarkdocComponent(props) {
+  const markdoc = props.markdoc;
+  return Markdoc.renderers.react(markdoc.content, React, {
+    components: {
+      ...components,
+      ...props.components,
+    },
+  });
+}
+"
+,
+  "map": "none",
+  "meta": {
+    "appMode": false,
+    "filepath": "/mdtype-array.md",
+    "isPage": true,
+    "schemaDir": "<root>/tmp/test/golden/frontmatter/markdoc",
+  },
+  "watchFiles": [],
+}
+`;
+
+exports[`fastRefreshComponentModule pages 1`] = `
+{
+  "code": 
+"// @vitejs/plugin-react は react/jsx-runtime の有無で Fast Refresh の対象を判定するため jsx() を使う。
+import {jsx} from 'react/jsx-runtime';
+import React from 'react';
+import {__markdocInternal} from "./getting-started.md";
+
+export default function MarkdocComponent(props) {
+  const {components, getMarkdocData, renderers} = __markdocInternal;
+  const markdoc = props.markdoc;
+  return jsx(React.Fragment, {
+    children: renderers.react(markdoc.content, React, {
+      components: {...components, ...props.components},
+    }),
+  });
+}
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": {
+    "mappings": "",
+  },
+}
+`;
+
+exports[`fastRefreshComponentModule app 1`] = `
+{
+  "code": 
+"// @vitejs/plugin-react は react/jsx-runtime の有無で Fast Refresh の対象を判定するため jsx() を使う。
+import {jsx} from 'react/jsx-runtime';
+import React from 'react';
+import {__markdocInternal} from "./page.md";
+
+export default async function MarkdocComponent(props) {
+  const {components, getMarkdocData, renderers} = __markdocInternal;
+  const markdoc = await getMarkdocData();
+  return jsx(React.Fragment, {
+    children: renderers.react(markdoc.content, React, {
+      components: {...components, ...props.components},
+    }),
+  });
+}
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": {
+    "mappings": "",
+  },
+}
+`;
+
+exports[`fastRefreshComponentModule component 1`] = `
+{
+  "code": 
+"// @vitejs/plugin-react は react/jsx-runtime の有無で Fast Refresh の対象を判定するため jsx() を使う。
+import {jsx} from 'react/jsx-runtime';
+import React from 'react';
+import {__markdocInternal} from "./note.md";
+
+export default function MarkdocComponent(props) {
+  const {components, getMarkdocData, renderers} = __markdocInternal;
+  const markdoc = getMarkdocData();
+  return jsx(React.Fragment, {
+    children: renderers.react(markdoc.content, React, {
+      components: {...components, ...props.components},
+    }),
+  });
+}
+if (import.meta.hot) import.meta.hot.accept();
+"
+,
+  "map": {
+    "mappings": "",
+  },
+}
+`;
